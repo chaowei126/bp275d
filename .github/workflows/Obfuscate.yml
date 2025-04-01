@@ -31,6 +31,46 @@ jobs:
         run: |
           wget -O origin.js https://raw.githubusercontent.com/bia-pain-bache/BPB-Worker-Panel/refs/heads/main/build/unobfuscated-worker.js
 
+      - name: Inject dead code
+        run: |
+          cat >> origin.js << 'EOF'
+
+          // 添加一些无效函数和变量以增加混淆强度
+          function _0x123456() {
+              let _0xdead = Math.random();
+              if (_0xdead > 999999) {
+                  console.log("never reach");
+                  return false;
+              }
+              return true;
+          }
+
+          function _0xabcdef(x) {
+              if (x === undefined) {
+                  let _0xarray = [1,2,3,4,5];
+                  _0xarray.forEach(i => {
+                      if (i > 999999) console.log(i);
+                  });
+              }
+              return x;
+          }
+
+          const _0xunused = {
+              a: () => Math.random() > 2,
+              b: () => Date.now() < 0,
+              c: () => false && _0x123456(),
+              d: (x) => x > 999999 ? _0xabcdef(x) : x
+          };
+
+          // 添加一些永远不会执行的条件判断
+          if (false) {
+              _0xunused.a();
+              _0xunused.b();
+              _0xunused.c();
+              _0xunused.d(0);
+          }
+          EOF
+
       - name: Obfuscate BPB worker js
         run: |
           javascript-obfuscator origin.js --output _worker.js \
@@ -54,4 +94,3 @@ jobs:
           commit_message: ':arrow_up: update latest bpb panel'
           commit_author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
           push_options: '--set-upstream'
-
