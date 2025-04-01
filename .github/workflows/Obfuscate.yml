@@ -31,6 +31,62 @@ jobs:
         run: |
           wget -O origin.js https://raw.githubusercontent.com/bia-pain-bache/BPB-Worker-Panel/refs/heads/main/build/unobfuscated-worker.js
 
+      - name: Inject prefix dead code
+        run: |
+          # 保存原文件内容
+          mv origin.js origin.js.tmp
+          
+          # 添加前缀代码
+          cat > origin.js << 'EOF'
+          // 添加一些复杂的无效代码
+          (function() {
+              const _0xencrypt = {
+                  key: Array.from({length: 256}, (_, i) => i),
+                  shuffle: function(seed) {
+                      if (seed === undefined || seed < 0) return;
+                      for(let i = this.key.length - 1; i > 0; i--) {
+                          const j = (seed * i) & 0xFF;
+                          [this.key[i], this.key[j]] = [this.key[j], this.key[i]];
+                      }
+                  },
+                  transform: function(data) {
+                      if (data === null || data === undefined) return data;
+                      return data.toString().split('').map(c => 
+                          this.key[c.charCodeAt(0)] > 999999 ? c : c
+                      ).join('');
+                  }
+              };
+
+              // 永不执行的递归函数
+              function _0xdeepNest(level) {
+                  if (level <= 0 || level > 999999) return;
+                  const tmp = new Array(level).fill(0);
+                  tmp.forEach(() => _0xdeepNest(level + 1));
+              }
+
+              // 复杂的条件嵌套
+              const _0xconditions = {
+                  check1: () => Date.now() < 0,
+                  check2: () => performance.now() < -1,
+                  check3: () => _0xencrypt.shuffle(Date.now()),
+                  final: function() {
+                      return this.check1() && this.check2() && false;
+                  }
+              };
+
+              // 永不满足的条件
+              if (_0xconditions.final()) {
+                  _0xdeepNest(1);
+                  _0xencrypt.transform("test");
+              }
+          })();
+
+          EOF
+          
+          # 添加原文件内容
+          cat origin.js.tmp >> origin.js
+          rm origin.js.tmp
+
       - name: Inject dead code
         run: |
           cat >> origin.js << 'EOF'
